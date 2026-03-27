@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WiseBite Photo Review Dashboard</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #1a1a2e;
+    color: #e0e0e0;
+    min-height: 100vh;
+  }
+
+  /* Login */
+  .login-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: 20px;
+  }
+
+  .login-box {
+    background: #16213e;
+    border-radius: 16px;
+    padding: 48px 40px;
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+  }
+
+  .login-icon {
+    font-size: 48px;
+    margin-bottom: 8px;
+  }
+
+  .login-box h1 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 4px;
+  }
+
+  .login-box p {
+    color: #8892b0;
+    margin-bottom: 28px;
+    font-size: 14px;
+  }
+
+  .login-box input {
+    width: 100%;
+    padding: 14px 16px;
+    border: 2px solid #2a3a5c;
+    border-radius: 10px;
+    background: #0f1a30;
+    color: #fff;
+    font-size: 15px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .login-box input:focus {
+    border-color: #4CAF50;
+  }
+
+  .login-box input::placeholder {
+    color: #5a6a8a;
+  }
+
+  .login-btn {
+    width: 100%;
+    padding: 14px;
+    margin-top: 16px;
+    border: none;
+    border-radius: 10px;
+    background: #4CAF50;
+    color: #fff;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+  }
+
+  .login-btn:hover { background: #43a047; }
+  .login-btn:active { transform: scale(0.98); }
+
+  .login-error {
+    color: #F44336;
+    font-size: 13px;
+    margin-top: 12px;
+    min-height: 20px;
+  }
+
+  /* Dashboard */
+  .dashboard { display: none; }
+
+  .header {
+    background: #16213e;
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #2a3a5c;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .header-left svg {
+    flex-shrink: 0;
+  }
+
+  .header h1 {
+    font-size: 18px;
+    font-weight: 700;
+    color: #fff;
+  }
+
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .btn-icon {
+    background: none;
+    border: 1px solid #2a3a5c;
+    color: #8892b0;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .btn-icon:hover {
+    border-color: #4CAF50;
+    color: #fff;
+  }
+
+  .btn-logout {
+    border-color: #F44336;
+    color: #F44336;
+  }
+
+  .btn-logout:hover {
+    background: #F44336;
+    color: #fff;
+  }
+
+  /* Toolbar */
+  .toolbar {
+    padding: 20px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .pending-count {
+    font-size: 15px;
+    color: #8892b0;
+  }
+
+  .pending-count strong {
+    color: #4CAF50;
+    font-weight: 700;
+  }
+
+  /* Grid */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+    padding: 0 24px 40px;
+  }
+
+  .card {
+    background: #16213e;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  .card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 28px rgba(0,0,0,0.35);
+  }
+
+  .card-img-wrap {
+    width: 100%;
+    aspect-ratio: 1;
+    max-height: 300px;
+    overflow: hidden;
+    background: #0f1a30;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .card-img-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .card-img-wrap .img-error {
+    color: #5a6a8a;
+    font-size: 13px;
+    text-align: center;
+    padding: 20px;
+  }
+
+  .card-body {
+    padding: 16px;
+  }
+
+  .card-barcode {
+    font-size: 16px;
+    font-weight: 700;
+    color: #fff;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+  }
+
+  .card-date {
+    font-size: 12px;
+    color: #5a6a8a;
+    margin-top: 4px;
+  }
+
+  .card-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 14px;
+  }
+
+  .card-actions button {
+    flex: 1;
+    padding: 10px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.1s;
+  }
+
+  .card-actions button:active { transform: scale(0.96); }
+  .card-actions button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .btn-approve { background: #4CAF50; color: #fff; }
+  .btn-approve:hover:not(:disabled) { opacity: 0.9; }
+
+  .btn-reject { background: #F44336; color: #fff; }
+  .btn-reject:hover:not(:disabled) { opacity: 0.9; }
+
+  /* Empty state */
+  .empty-state {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 80px 20px;
+    color: #5a6a8a;
+  }
+
+  .empty-state svg {
+    margin-bottom: 16px;
+  }
+
+  .empty-state p {
+    font-size: 16px;
+  }
+
+  /* Loading overlay */
+  .loading-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(26,26,46,0.7);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+  }
+
+  .spinner {
+    width: 44px;
+    height: 44px;
+    border: 4px solid #2a3a5c;
+    border-top-color: #4CAF50;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Toast */
+  .toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 300;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .toast {
+    padding: 14px 20px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #fff;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    animation: toastIn 0.3s ease, toastOut 0.3s ease 2.7s forwards;
+    max-width: 340px;
+  }
+
+  .toast-success { background: #2e7d32; }
+  .toast-error { background: #c62828; }
+
+  @keyframes toastIn { from { opacity: 0; transform: translateX(40px); } to { opacity: 1; transform: translateX(0); } }
+  @keyframes toastOut { from { opacity: 1; } to { opacity: 0; } }
+
+  /* Confirm dialog */
+  .confirm-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(26,26,46,0.8);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 250;
+  }
+
+  .confirm-box {
+    background: #16213e;
+    border-radius: 14px;
+    padding: 32px;
+    max-width: 380px;
+    width: 90%;
+    text-align: center;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+  }
+
+  .confirm-box h3 {
+    color: #fff;
+    margin-bottom: 8px;
+    font-size: 18px;
+  }
+
+  .confirm-box p {
+    color: #8892b0;
+    margin-bottom: 24px;
+    font-size: 14px;
+  }
+
+  .confirm-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+  }
+
+  .confirm-actions button {
+    padding: 10px 28px;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .confirm-cancel {
+    background: #2a3a5c;
+    color: #e0e0e0;
+  }
+
+  .confirm-delete {
+    background: #F44336;
+    color: #fff;
+  }
+
+  /* Responsive */
+  @media (max-width: 600px) {
+    .header h1 { font-size: 15px; }
+    .grid { grid-template-columns: 1fr; padding: 0 16px 32px; }
+    .toolbar { padding: 16px; }
+    .login-box { padding: 36px 24px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Login -->
+<div class="login-container" id="loginView">
+  <div class="login-box">
+    <div class="login-icon">
+      <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+        <path d="M24 4C24 4 36 8 38 20C40 32 28 40 24 44C20 40 8 32 10 20C12 8 24 4 24 4Z" fill="#4CAF50"/>
+        <path d="M24 14V34M18 20C20 18 22 17 24 18C26 17 28 18 30 20" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <h1>WiseBite Photo Review</h1>
+    <p>Enter admin key to continue</p>
+    <input type="password" id="keyInput" placeholder="Admin key" autocomplete="off">
+    <button class="login-btn" onclick="attemptLogin()">Sign In</button>
+    <div class="login-error" id="loginError"></div>
+  </div>
+</div>
+
+<!-- Dashboard -->
+<div class="dashboard" id="dashboardView">
+  <div class="header">
+    <div class="header-left">
+      <svg width="28" height="28" viewBox="0 0 48 48" fill="none">
+        <path d="M24 4C24 4 36 8 38 20C40 32 28 40 24 44C20 40 8 32 10 20C12 8 24 4 24 4Z" fill="#4CAF50"/>
+        <path d="M24 14V34M18 20C20 18 22 17 24 18C26 17 28 18 30 20" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      <h1>WiseBite Photo Review Dashboard</h1>
+    </div>
+    <div class="header-actions">
+      <button class="btn-icon" onclick="loadPending()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+        Refresh
+      </button>
+      <button class="btn-icon btn-logout" onclick="logout()">Logout</button>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <div class="pending-count" id="pendingCount"></div>
+  </div>
+
+  <div class="empty-state" id="emptyState">
+    <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#4CAF50" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="12" cy="12" r="10"/>
+      <path d="M8 12l3 3 5-5"/>
+    </svg>
+    <p>No photos pending review</p>
+  </div>
+
+  <div class="grid" id="photoGrid"></div>
+</div>
+
+<!-- Loading overlay -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="spinner"></div>
+</div>
+
+<!-- Toast container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- Confirm dialog -->
+<div class="confirm-overlay" id="confirmOverlay">
+  <div class="confirm-box">
+    <h3>Reject Photo</h3>
+    <p id="confirmText">Are you sure you want to reject this photo?</p>
+    <div class="confirm-actions">
+      <button class="confirm-cancel" onclick="closeConfirm()">Cancel</button>
+      <button class="confirm-delete" id="confirmBtn" onclick="confirmReject()">Reject</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const WORKER_URL = 'https://wisebite-upload.xdrew760x.workers.dev';
+const STORAGE_KEY = 'wisebite_admin_key';
+const VALID_KEY = 'wisebite-admin-2026';
+
+let adminKey = '';
+let pendingBarcode = null;
+
+// Init
+(function init() {
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (saved === VALID_KEY) {
+    adminKey = saved;
+    showDashboard();
+    loadPending();
+  }
+  document.getElementById('keyInput').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') attemptLogin();
+  });
+})();
+
+function attemptLogin() {
+  const input = document.getElementById('keyInput');
+  const key = input.value.trim();
+  if (key === VALID_KEY) {
+    adminKey = key;
+    localStorage.setItem(STORAGE_KEY, key);
+    showDashboard();
+    loadPending();
+  } else {
+    document.getElementById('loginError').textContent = 'Invalid admin key';
+    input.value = '';
+    input.focus();
+  }
+}
+
+function logout() {
+  adminKey = '';
+  localStorage.removeItem(STORAGE_KEY);
+  document.getElementById('loginView').style.display = 'flex';
+  document.getElementById('dashboardView').style.display = 'none';
+  document.getElementById('keyInput').value = '';
+  document.getElementById('loginError').textContent = '';
+}
+
+function showDashboard() {
+  document.getElementById('loginView').style.display = 'none';
+  document.getElementById('dashboardView').style.display = 'block';
+}
+
+function showLoading(show) {
+  document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none';
+}
+
+function showToast(message, type) {
+  const container = document.getElementById('toastContainer');
+  const toast = document.createElement('div');
+  toast.className = 'toast toast-' + type;
+  toast.textContent = message;
+  container.appendChild(toast);
+  setTimeout(function() { toast.remove(); }, 3000);
+}
+
+async function loadPending() {
+  showLoading(true);
+  try {
+    const res = await fetch(WORKER_URL + '/pending', {
+      headers: { 'x-admin-key': adminKey }
+    });
+    if (!res.ok) throw new Error('Failed to fetch (' + res.status + ')');
+    const data = await res.json();
+    renderPhotos(data);
+  } catch (err) {
+    showToast('Failed to load photos: ' + err.message, 'error');
+    renderPhotos([]);
+  } finally {
+    showLoading(false);
+  }
+}
+
+function renderPhotos(photos) {
+  const grid = document.getElementById('photoGrid');
+  const empty = document.getElementById('emptyState');
+  const count = document.getElementById('pendingCount');
+
+  count.innerHTML = '<strong>' + photos.length + '</strong> photo' + (photos.length !== 1 ? 's' : '') + ' pending review';
+
+  if (photos.length === 0) {
+    grid.innerHTML = '';
+    grid.style.display = 'none';
+    empty.style.display = 'flex';
+    return;
+  }
+
+  empty.style.display = 'none';
+  grid.style.display = 'grid';
+
+  grid.innerHTML = photos.map(function(photo) {
+    const barcode = photo.barcode || photo.key || 'unknown';
+    const date = photo.uploaded ? new Date(photo.uploaded).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Unknown date';
+    const imgUrl = 'https://pub-252116c21ff94694994831b711e0e193.r2.dev/pending/' + barcode + '.jpg';
+
+    return '<div class="card" id="card-' + barcode + '">' +
+      '<div class="card-img-wrap">' +
+        '<img src="' + imgUrl + '" alt="Product ' + barcode + '" onerror="this.outerHTML=\'<div class=img-error>Image failed to load</div>\'">' +
+      '</div>' +
+      '<div class="card-body">' +
+        '<div class="card-barcode">' + barcode + '</div>' +
+        '<div class="card-date">' + date + '</div>' +
+        '<div class="card-actions">' +
+          '<button class="btn-approve" onclick="approvePhoto(\'' + barcode + '\')">Approve</button>' +
+          '<button class="btn-reject" onclick="openConfirm(\'' + barcode + '\')">Reject</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+async function approvePhoto(barcode) {
+  showLoading(true);
+  try {
+    const res = await fetch(WORKER_URL + '/approve/' + barcode, {
+      method: 'POST',
+      headers: { 'x-admin-key': adminKey }
+    });
+    if (!res.ok) throw new Error('Failed (' + res.status + ')');
+    showToast('Approved: ' + barcode, 'success');
+    removeCard(barcode);
+  } catch (err) {
+    showToast('Error approving: ' + err.message, 'error');
+  } finally {
+    showLoading(false);
+  }
+}
+
+function openConfirm(barcode) {
+  pendingBarcode = barcode;
+  document.getElementById('confirmText').textContent = 'Are you sure you want to reject the photo for barcode ' + barcode + '?';
+  document.getElementById('confirmOverlay').style.display = 'flex';
+}
+
+function closeConfirm() {
+  pendingBarcode = null;
+  document.getElementById('confirmOverlay').style.display = 'none';
+}
+
+async function confirmReject() {
+  const barcode = pendingBarcode;
+  closeConfirm();
+  if (!barcode) return;
+
+  showLoading(true);
+  try {
+    const res = await fetch(WORKER_URL + '/reject/' + barcode, {
+      method: 'POST',
+      headers: { 'x-admin-key': adminKey }
+    });
+    if (!res.ok) throw new Error('Failed (' + res.status + ')');
+    showToast('Rejected: ' + barcode, 'success');
+    removeCard(barcode);
+  } catch (err) {
+    showToast('Error rejecting: ' + err.message, 'error');
+  } finally {
+    showLoading(false);
+  }
+}
+
+function removeCard(barcode) {
+  const card = document.getElementById('card-' + barcode);
+  if (card) {
+    card.style.transition = 'opacity 0.3s, transform 0.3s';
+    card.style.opacity = '0';
+    card.style.transform = 'scale(0.9)';
+    setTimeout(function() {
+      card.remove();
+      const remaining = document.querySelectorAll('.card').length;
+      document.getElementById('pendingCount').innerHTML = '<strong>' + remaining + '</strong> photo' + (remaining !== 1 ? 's' : '') + ' pending review';
+      if (remaining === 0) {
+        document.getElementById('photoGrid').style.display = 'none';
+        document.getElementById('emptyState').style.display = 'flex';
+      }
+    }, 300);
+  }
+}
+</script>
+</body>
+</html>
